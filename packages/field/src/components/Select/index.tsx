@@ -1,6 +1,9 @@
 import React, { ReactNode, useState, useImperativeHandle, useEffect, useRef } from 'react';
 import { Select, Spin } from 'antd';
 import { ProSchemaValueEnumMap, ProSchemaValueEnumObj } from '@ant-design/pro-utils';
+import { useIntl } from '@ant-design/pro-provider';
+
+import LightSelect from './LightSelect';
 import TableStatus, { ProFieldStatusType } from '../Status';
 import { ProFieldFC } from '../../index';
 
@@ -172,6 +175,16 @@ const useFetchData = (
       value,
     })),
   );
+
+  useEffect(() => {
+    setOptions(
+      proFieldParsingValueEnumToArray(ObjToMap(props.valueEnum)).map(({ value, text }) => ({
+        label: text,
+        value,
+      })),
+    );
+  }, [props.valueEnum]);
+
   const [loading, setLoading] = useState<boolean>(false);
   const fetchData = async () => {
     if (!props.request) {
@@ -199,19 +212,19 @@ const FieldSelect: ProFieldFC<FieldSelectProps> = (props, ref) => {
     render,
     renderFormItem,
     request,
-    formItemProps,
+    fieldProps,
     plain,
     children,
+    light,
     ...rest
   } = props;
   const inputRef = useRef();
-
+  const intl = useIntl();
   const [loading, options, fetchData] = useFetchData(props);
   useImperativeHandle(ref, () => ({
     ...(inputRef.current || {}),
     fetchData: () => fetchData(),
   }));
-
   if (mode === 'read') {
     if (loading) {
       return <Spin />;
@@ -224,28 +237,42 @@ const FieldSelect: ProFieldFC<FieldSelectProps> = (props, ref) => {
     const dom = <>{proFieldParsingText(rest.text, ObjToMap(optionsValueEnum || valueEnum))}</>;
 
     if (render) {
-      return render(rest.text, { mode, ...formItemProps }, dom) || null;
+      return render(rest.text, { mode, ...fieldProps }, dom) || null;
     }
     return dom;
   }
   if (mode === 'edit' || mode === 'update') {
-    const dom = (
-      <Select
-        style={{
-          minWidth: 100,
-        }}
-        loading={loading}
-        ref={inputRef}
-        allowClear
-        {...rest}
-        options={options}
-        {...formItemProps}
-      >
-        {children}
-      </Select>
-    );
+    let dom;
+    if (light) {
+      dom = (
+        <LightSelect
+          loading={loading}
+          ref={inputRef}
+          allowClear
+          {...rest}
+          placeholder={intl.getMessage('tableForm.selectPlaceholder', '请选择')}
+          options={options}
+          {...fieldProps}
+        />
+      );
+    } else {
+      dom = (
+        <Select
+          style={{
+            minWidth: 100,
+          }}
+          loading={loading}
+          ref={inputRef}
+          allowClear
+          {...rest}
+          placeholder={intl.getMessage('tableForm.selectPlaceholder', '请选择')}
+          options={options}
+          {...fieldProps}
+        />
+      );
+    }
     if (renderFormItem) {
-      return renderFormItem(rest.text, { mode, ...formItemProps }, dom) || null;
+      return renderFormItem(rest.text, { mode, ...fieldProps }, dom) || null;
     }
     return dom;
   }

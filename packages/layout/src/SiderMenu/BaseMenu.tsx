@@ -22,12 +22,13 @@ export interface BaseMenuProps
   className?: string;
   collapsed?: boolean;
   splitMenus?: boolean;
-  handleOpenChange?: (openKeys: string[]) => void;
   isMobile?: boolean;
   menuData?: MenuDataItem[];
   mode?: MenuMode;
   onCollapse?: (collapsed: boolean) => void;
   openKeys?: WithFalse<string[]> | undefined;
+  handleOpenChange?: (openKeys: string[]) => void;
+
   /**
    * 要给菜单的props, 参考antd-menu的属性。https://ant.design/components/menu-cn/
    */
@@ -108,15 +109,15 @@ class MenuUtil {
   getSubMenuOrItem = (item: MenuDataItem, isChildren: boolean): React.ReactNode => {
     if (Array.isArray(item.children) && this.hasChildren(item)) {
       const name = this.getIntlName(item);
-      const { subMenuItemRender } = this.props;
+      const { subMenuItemRender, prefixCls } = this.props;
       //  get defaultTitle by menuItemRender
       const defaultTitle = item.icon ? (
-        <span>
+        <span className={`${prefixCls}-menu-item`}>
           {!isChildren && getIcon(item.icon)}
           <span>{name}</span>
         </span>
       ) : (
-        name
+        <span className={`${prefixCls}-menu-item`}>{name}</span>
       );
 
       // subMenu only title render
@@ -340,6 +341,8 @@ const BaseMenu: React.FC<BaseMenuProps> = (props) => {
 
   const [menuUtils] = useState(() => new MenuUtil(props));
 
+  // sync props
+  menuUtils.props = props;
   /**
    * 这里需要用 menuData
    * 为了计算 splitMenus 需要用最全的 menuData

@@ -18,6 +18,10 @@
     border: @border-width-base @border-style-base @border-color-split;
   }
 
+  &-ghost {
+    background-color: transparent;
+  }
+
   &-split > &-body {
     padding: 0;
   }
@@ -33,7 +37,6 @@
   &-contain-card > &-body {
     display: flex;
     flex-direction: row;
-    flex-grow: 1;
   }
 
   &-contain-card > &-body-column {
@@ -43,7 +46,6 @@
   &-header {
     display: flex;
     justify-content: space-between;
-    background-color: white;
     padding: @padding-md;
     padding-bottom: 0;
     &-border {
@@ -70,14 +72,14 @@
   }
 
   &-title {
-    font-weight: bold;
+    font-weight: 500;
   }
 
   &-body {
     display: block;
     padding: @padding-md;
+    height: 100%;
     box-sizing: border-box;
-    overflow: hidden;
 
     &-center {
       display: flex;
@@ -87,6 +89,11 @@
 
     &-collapse {
       display: none;
+    }
+
+    &-ghost {
+      padding: 0;
+      background-color: transparent;
     }
   }
 

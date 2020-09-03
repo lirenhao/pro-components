@@ -5,6 +5,7 @@ group:
 nav:
   title: 组件
   path: /components
+  order: 1
 ---
 
 # ProDescriptions - 高级定义列表
@@ -17,19 +18,19 @@ nav:
 
 基本使用。
 
-<code src="../demos/base.tsx" />
+<code src="./demos/base.tsx" />
 
 ### 远程请求数据
 
 通过请求接口数据来展示定义列表
 
-<code src="../demos/request.tsx" />
+<code src="./demos/request.tsx" />
 
 ### columns
 
 通过请求接口数据和 columns 来展示定义列表
 
-<code src="../demos/columns.tsx" />
+<code src="./demos/columns.tsx" />
 
 ## API
 

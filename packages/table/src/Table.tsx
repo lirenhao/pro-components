@@ -28,13 +28,14 @@ import {
   ProFieldEmptyText,
   ProFieldValueType,
   proFieldParsingValueEnumToArray,
+  ProFieldValueObjectType,
 } from '@ant-design/pro-field';
 import {
   useDeepCompareEffect,
   ProSchema,
   ProSchemaComponentTypes,
   LabelIconTip,
-  pickUndefined,
+  pickUndefinedAndArray,
   ProCoreActionType,
 } from '@ant-design/pro-utils';
 
@@ -53,7 +54,7 @@ import {
   postDataPipeline,
 } from './utils';
 
-import defaultRenderText, { ProColumnsValueTypeFunction } from './defaultRender';
+import defaultRenderText from './defaultRender';
 import { DensitySize } from './component/ToolBar/DensityIcon';
 import ErrorBoundary from './component/ErrorBoundary';
 
@@ -62,12 +63,11 @@ type TableRowSelection = TableProps<any>['rowSelection'];
 export type ExtraProColumnType<T> = Omit<
   ColumnType<T>,
   'render' | 'children' | 'title' | 'filters'
-> &
-  Partial<Omit<FormItemProps, 'children'>>;
+>;
 
 export type ProColumnType<T = unknown> = ProSchema<
   T,
-  ProFieldValueType | ProColumnsValueTypeFunction<T>,
+  ProFieldValueType | ProFieldValueObjectType,
   ExtraProColumnType<T> & {
     index?: number;
 
@@ -108,6 +108,10 @@ export type ProColumnType<T = unknown> = ProSchema<
      * form 的排序
      */
     order?: number;
+    /**
+     * 传给 Form.Item 的 props
+     */
+    formItemProps?: Partial<Omit<FormItemProps, 'children'>>;
   }
 >;
 
@@ -220,7 +224,7 @@ export interface ProTableProps<T, U extends ParamsType>
   /**
    * 是否显示搜索表单
    */
-  search?: boolean | SearchConfig;
+  search?: false | SearchConfig;
 
   /**
    * type="form" 和 搜索表单 的 Form 配置
@@ -431,7 +435,7 @@ const genColumnList = <T, U = {}>(
         render: (text: any, row: T, index: number) =>
           columnRender<T>({ item, text, row, index, columnEmptyText, counter }),
       };
-      return pickUndefined(tempColumns);
+      return pickUndefinedAndArray(tempColumns);
     })
     .filter((item) => !item.hideInTable) as unknown) as Array<
     ColumnsType<T>[number] & {
@@ -468,7 +472,7 @@ const ProTable = <T extends {}, U extends ParamsType>(
     columnsStateMap,
     onColumnsStateChange,
     options,
-    search = true,
+    search,
     rowSelection: propsRowSelection = false,
     beforeSearchSubmit = (searchParams: Partial<U>) => searchParams,
     tableAlertRender,
@@ -484,14 +488,24 @@ const ProTable = <T extends {}, U extends ParamsType>(
   const [selectedRowKeys, setSelectedRowKeys] = useMergedState<React.ReactText[]>([], {
     value: propsRowSelection ? propsRowSelection.selectedRowKeys : undefined,
   });
+  const [selectedRows, setSelectedRows] = useMergedState<T[]>([]);
+
+  const setSelectedRowsAndKey = (keys: React.ReactText[], rows: T[]) => {
+    setSelectedRowKeys(keys);
+    setSelectedRows(rows);
+  };
+
   const [formSearch, setFormSearch] = useState<{}>(() => rest.form?.initialValues);
-  const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [proFilter, setProFilter] = useState<{
     [key: string]: React.ReactText[];
   }>({});
   const [proSort, setProSort] = useState<{
     [key: string]: SortOrder;
   }>({});
+
+  /**
+   * 获取 table 的 dom ref
+   */
   const rootRef = useRef<HTMLDivElement>(null);
   const fullScreen = useRef<() => void>();
   const intl = useIntl();
@@ -507,7 +521,7 @@ const ProTable = <T extends {}, U extends ParamsType>(
       : { defaultCurrent: 1, defaultPageSize: 20, pageSize: 20, current: 1 };
 
   const action = useFetchData(
-    async ({ pageSize, current }) => {
+    async (pageParams) => {
       // 需要手动触发的首次请求
       const needManualFirstReq = manualRequest && !formSearch;
 
@@ -519,11 +533,13 @@ const ProTable = <T extends {}, U extends ParamsType>(
       }
 
       const actionParams = {
-        current,
-        pageSize,
+        ...(pageParams || {}),
         ...formSearch,
         ...params,
       };
+
+      // eslint-disable-next-line no-underscore-dangle
+      delete (actionParams as any)._timestamp;
 
       const response = await request((actionParams as unknown) as U, proSort, proFilter);
       const responseData = postDataPipeline<T[], U>(response.data, [postData]);
@@ -536,6 +552,7 @@ const ProTable = <T extends {}, U extends ParamsType>(
     defaultData,
     {
       ...fetchPagination,
+      pagination: propsPagination !== false,
       onLoad,
       onRequestError,
       manual: !request,
@@ -566,14 +583,20 @@ const ProTable = <T extends {}, U extends ParamsType>(
     if (propsRowSelection && propsRowSelection.onChange) {
       propsRowSelection.onChange([], []);
     }
-    setSelectedRowKeys([]);
-    setSelectedRows([]);
-  }, [setSelectedRowKeys, setSelectedRows]);
+    setSelectedRowsAndKey([], []);
+  }, [setSelectedRowKeys]);
 
   /**
    * 绑定 action
    */
-  useActionType(actionRef, counter, onCleanSelected);
+  useActionType(actionRef, counter, () => {
+    // 清空选中行
+    onCleanSelected();
+    // 清空筛选
+    setProFilter({});
+    // 清空排序
+    setProSort({});
+  });
   counter.setAction(action);
   counter.propsRef.current = props;
   /**
@@ -634,48 +657,13 @@ const ProTable = <T extends {}, U extends ParamsType>(
    * 同步 Pagination，支持受控的 页码 和 pageSize
    */
   useDeepCompareEffect(() => {
-    if (propsPagination && propsPagination.current && propsPagination.pageSize) {
+    if (propsPagination && (propsPagination.current || propsPagination.pageSize)) {
       action.setPageInfo({
         pageSize: propsPagination.pageSize,
         page: propsPagination.current,
       });
     }
   }, [propsPagination && propsPagination.pageSize, propsPagination && propsPagination.current]);
-
-  // 映射 selectedRowKeys 与 selectedRow
-  useEffect(() => {
-    if (action.loading !== false || propsRowSelection === false) {
-      return;
-    }
-    const tableKey = rest.rowKey;
-    const dataSource = request ? (action.dataSource as T[]) : props.dataSource || [];
-    // dataSource maybe is a null
-    // eg: api has 404 error
-    const duplicateRemoveMap = new Map();
-    if (Array.isArray(dataSource)) {
-      // 根据当前选中和当前的所有数据计算选中的行
-      // 因为防止翻页以后丢失，所有还增加了当前选择选中的
-      const rows = [...dataSource, ...selectedRows].filter((item, index) => {
-        let rowKey = tableKey;
-        if (!tableKey) {
-          return (selectedRowKeys as any).includes(index);
-        }
-        if (typeof tableKey === 'function') {
-          rowKey = tableKey(item, index) as string;
-        } else {
-          rowKey = item[tableKey];
-        }
-        if (duplicateRemoveMap.has(rowKey)) {
-          return false;
-        }
-        duplicateRemoveMap.set(rowKey, true);
-        return (selectedRowKeys as any).includes(rowKey);
-      });
-      setSelectedRows(rows);
-      return;
-    }
-    setSelectedRows([]);
-  }, [selectedRowKeys.join('-'), action.loading, propsRowSelection === false]);
 
   const rowSelection: TableRowSelection = {
     selectedRowKeys,
@@ -684,7 +672,7 @@ const ProTable = <T extends {}, U extends ParamsType>(
       if (propsRowSelection && propsRowSelection.onChange) {
         propsRowSelection.onChange(keys, rows);
       }
-      setSelectedRowKeys([...keys]);
+      setSelectedRowsAndKey(keys, rows);
     },
   };
 
@@ -773,7 +761,7 @@ const ProTable = <T extends {}, U extends ParamsType>(
           rest.onChange(changePagination, filters, sorter, extra);
         }
         // 制造筛选的数据
-        setProFilter(pickUndefined<any>(filters));
+        setProFilter(pickUndefinedAndArray<any>(filters));
 
         // 制造一个排序的数据
         if (Array.isArray(sorter)) {
@@ -819,10 +807,10 @@ const ProTable = <T extends {}, U extends ParamsType>(
       getPopupContainer={() => ((rootRef.current || document.body) as any) as HTMLElement}
     >
       <div className={className} id="ant-design-pro-table" style={style} ref={rootRef}>
-        {(search || type === 'form') && (
+        {(search !== false || type === 'form') && (
           <FormSearch<U>
             {...rest}
-            type={props.type}
+            type={type}
             formRef={formRef}
             onSubmit={(value) => {
               if (type !== 'form') {
@@ -839,8 +827,8 @@ const ProTable = <T extends {}, U extends ParamsType>(
                 props.onSubmit(value);
               }
             }}
-            onReset={() => {
-              setFormSearch(beforeSearchSubmit({}));
+            onReset={(value) => {
+              setFormSearch(beforeSearchSubmit(value));
               // back first page
               action.resetPageIndex();
               onReset();

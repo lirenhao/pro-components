@@ -1,6 +1,6 @@
 {
   "name": "@ant-design/pro-card",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.6",
   "description": "@ant-design/pro-card",
   "keywords": [
     "antd",
@@ -31,7 +31,7 @@
   ],
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
-    "@ant-design/pro-utils": "0.0.5",
+    "@ant-design/pro-utils": "0.1.2",
     "classnames": "^2.2.6"
   },
   "peerDependencies": {
@@ -42,7 +42,7 @@
     "access": "public"
   },
   "authors": [
-    "chencheng <sorrycc@gmail.com> (https://github.com/sorrycc)",
+    "rdmclin2 <rdmclin2@gmail.com> (https://github.com/rdmclin2)",
     "chenshuai2144 <qixian.cs@outlook.com> (https://github.com/chenshuai2144)"
   ]
 }

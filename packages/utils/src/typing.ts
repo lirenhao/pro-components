@@ -43,9 +43,8 @@ export type ProFieldRequestData<T, U = any> = (
  * 操作类型
  */
 export interface ProCoreActionType {
-  reload: (resetPageIndex?: boolean) => void;
+  reload: () => void;
   reloadAndRest?: () => void;
-  fetchMore?: () => void;
   reset?: () => void;
   clearSelected?: () => void;
 }
@@ -97,7 +96,7 @@ export type ProSchema<T = unknown, U = string, Extra = unknown> = {
    */
   renderText?: (text: any, record: T, index: number, action: ProCoreActionType) => any;
 
-  formItemProps?: any;
+  fieldProps?: any;
   /**
    * 映射值的类型
    */
@@ -114,4 +113,8 @@ export type ProSchema<T = unknown, U = string, Extra = unknown> = {
   params?: {
     [key: string]: any;
   };
+  /**
+   * 隐藏在 descriptions
+   */
+  hideInDescriptions?: boolean;
 } & Extra;

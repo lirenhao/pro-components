@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.6.3](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.6.2...@ant-design/pro-table@2.6.3) (2020-08-31)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.6.2](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.6.1...@ant-design/pro-table@2.6.2) (2020-08-26)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.6.1](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.6.0...@ant-design/pro-table@2.6.1) (2020-08-25)
+
+### Bug Fixes
+
+- **table:** use default value of labelWidth ([#290](https://github.com/ant-design/pro-components/issues/290)) ([c37e753](https://github.com/ant-design/pro-components/commit/c37e753f9cdca00b1d75716467cefa0f1c7cb3b5))
+
+# [2.6.0](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.15...@ant-design/pro-table@2.6.0) (2020-08-24)
+
+### Features
+
+- **form:** ProForm new Layout LightFilter support ([#173](https://github.com/ant-design/pro-components/issues/173)) ([e558c62](https://github.com/ant-design/pro-components/commit/e558c62a14e9d3b85050f790c72de96dbaa82321))
+
+## [2.5.15](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.14...@ant-design/pro-table@2.5.15) (2020-08-19)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.14](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.13...@ant-design/pro-table@2.5.14) (2020-08-18)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.13](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.12...@ant-design/pro-table@2.5.13) (2020-08-17)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.12](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.11...@ant-design/pro-table@2.5.12) (2020-08-17)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.11](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.10...@ant-design/pro-table@2.5.11) (2020-08-17)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.10](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.9...@ant-design/pro-table@2.5.10) (2020-08-14)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
+## [2.5.9](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.8...@ant-design/pro-table@2.5.9) (2020-08-14)
+
+**Note:** Version bump only for package @ant-design/pro-table
+
 ## [2.5.8](https://github.com/ant-design/pro-components/compare/@ant-design/pro-table@2.5.7...@ant-design/pro-table@2.5.8) (2020-08-14)
 
 **Note:** Version bump only for package @ant-design/pro-table

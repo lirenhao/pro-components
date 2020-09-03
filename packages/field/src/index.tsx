@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { Avatar } from 'antd';
 import { Moment } from 'moment';
-import { pickProProps } from '@ant-design/pro-utils';
+import { pickProProps, pickUndefined } from '@ant-design/pro-utils';
+import { useIntl } from '@ant-design/pro-provider';
 import FieldPercent from './components/Percent';
 import FieldIndexColumn from './components/IndexColumn';
 import FieldProgress from './components/Progress';
@@ -70,15 +71,23 @@ type BaseProFieldFC = {
    */
   text: React.ReactNode;
 
-  formItemProps?: any;
+  fieldProps?: any;
   /**
    * 模式类型
    */
   mode: ProFieldFCMode;
   /**
-   *简约模式
+   * 简约模式
    */
   plain?: boolean;
+  /**
+   * 轻量模式
+   */
+  light?: boolean;
+  /**
+   * label
+   */
+  label?: React.ReactNode;
 
   /**
    * 映射值的类型
@@ -123,6 +132,7 @@ export type ProFieldValueObjectType = {
   locale?: string;
   /** percent */
   showSymbol?: boolean;
+  showColor?: boolean;
   precision?: number;
   request?: ProFieldRequestData;
 };
@@ -146,15 +156,15 @@ type RenderProps = Omit<ProFieldFCRenderProps, 'text'> &
 const defaultRenderTextByObject = (
   text: ProFieldTextType,
   valueType: ProFieldValueObjectType,
-  props: RenderProps = { mode: 'read', plain: false },
+  props: RenderProps = { mode: 'read', plain: false, light: false },
 ) => {
-  const pickFormItemProps = pickProProps(props.formItemProps);
+  const pickFormItemProps = pickProProps(props.fieldProps);
   if (valueType.type === 'progress') {
     return (
       <FieldProgress
         {...props}
         text={text as number}
-        formItemProps={{
+        fieldProps={{
           status: valueType.status ? valueType.status : undefined,
           ...pickFormItemProps,
         }}
@@ -164,10 +174,10 @@ const defaultRenderTextByObject = (
   if (valueType.type === 'money') {
     return (
       <FieldMoney
-        {...props}
-        formItemProps={pickFormItemProps}
-        text={text as number}
         locale={valueType.locale}
+        {...props}
+        fieldProps={pickFormItemProps}
+        text={text as number}
       />
     );
   }
@@ -178,7 +188,8 @@ const defaultRenderTextByObject = (
         text={text as number}
         showSymbol={valueType.showSymbol}
         precision={valueType.precision}
-        formItemProps={pickFormItemProps}
+        fieldProps={pickFormItemProps}
+        showColor={valueType.showColor}
       />
     );
   }
@@ -309,10 +320,12 @@ const Field: React.ForwardRefRenderFunction<
     valueType?: ProFieldValueType | ProFieldValueObjectType;
   } & RenderProps
 > = ({ text = '', valueType = 'text', onChange, value, ...rest }, ref) => {
-  const formItemProps = (value || onChange || rest?.formItemProps) && {
-    ...rest?.formItemProps,
+  const intl = useIntl();
+  const fieldProps = (value || onChange || rest?.fieldProps) && {
     value,
     onChange,
+    // fieldProps 优先级更高，在类似 LightFilter 场景下需要覆盖默认的 value 和 onChange
+    ...pickUndefined(rest?.fieldProps),
   };
   return (
     <React.Fragment>
@@ -320,7 +333,8 @@ const Field: React.ForwardRefRenderFunction<
         ...rest,
         mode: rest.mode || 'read',
         ref,
-        formItemProps: pickProProps(formItemProps),
+        placeholder: intl.getMessage('tableForm.inputPlaceholder', '请输入'),
+        fieldProps: pickProProps(fieldProps),
       })}
     </React.Fragment>
   );
